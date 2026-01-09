@@ -1,0 +1,550 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ituna School - Student Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg: #0f172a;
+            --glass: rgba(255,255,255,0.05);
+            --muted: #94a3b8;
+            --text: #cbd5e1;
+            --accent-1: #f43f5e;
+            --accent-2: #fb7185;
+            --success: #10b981;
+            --error: #ef4444;
+            --particle: rgba(244,63,94,0.8);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+        html,body { height: 100%; }
+
+        body {
+            background-color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #bgCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            display: block;
+        }
+
+        .container {
+            background-color: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            width: 850px;
+            max-width: 100%;
+            min-height: 550px;
+        }
+
+        .container p { font-size: 14px; line-height: 20px; letter-spacing: 0.3px; margin: 20px 0; color: var(--text); }
+        .container span { font-size: 12px; color: var(--muted); }
+        .container a { color: #fff; font-size: 13px; text-decoration: none; margin: 15px 0 10px; transition: 0.3s; }
+        .container a:hover { color: var(--accent-1); }
+
+        .container button {
+            background: linear-gradient(to right, var(--accent-1), var(--accent-2));
+            color: #fff;
+            font-size: 12px;
+            padding: 12px 45px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .container button:active { transform: scale(0.95); }
+
+        /* ghost / secondary */
+        .ghost {
+            background-color: transparent;
+            border: 1px solid #fff;
+        }
+
+        form {
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            height: 100%;
+        }
+
+        .container h1 {
+            color: #fff;
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .input-group { position: relative; width: 100%; margin: 8px 0; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #64748b; pointer-events: none; }
+
+        input[type="text"], input[type="email"], input[type="password"] {
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 0;
+            padding: 12px 15px 12px 45px;
+            font-size: 14px;
+            border-radius: 12px;
+            width: 100%;
+            outline: none;
+            color: #fff;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent-1);
+            background-color: rgba(255,255,255,0.12);
+            box-shadow: 0 0 0 4px rgba(244,63,94,0.06);
+        }
+
+        /* visually hidden (screen-reader only) */
+        .sr-only {
+            position: absolute !important;
+            height: 1px; width: 1px;
+            overflow: hidden; clip: rect(1px, 1px, 1px, 1px);
+            white-space: nowrap; border: 0; padding: 0; margin: -1px;
+        }
+
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.7s ease-in-out;
+        }
+
+        .sign-in { left: 0; width: 50%; z-index: 2; }
+        .container.active .sign-in { transform: translateX(100%); }
+        .sign-up { left: 0; width: 50%; opacity: 0; z-index: 1; }
+        .container.active .sign-up { transform: translateX(100%); opacity: 1; z-index: 5; animation: move 0.7s; }
+
+        @keyframes move {
+            0%, 49.99% { opacity: 0; z-index: 1; filter: blur(10px); transform: translateX(120%); }
+            50%, 100% { opacity: 1; z-index: 5; filter: none; transform: translateX(0); }
+        }
+
+        .toggle-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: all 0.7s ease-in-out;
+            z-index: 100;
+            border-radius: 150px 0 0 100px;
+        }
+
+        .container.active .toggle-container { transform: translateX(-100%); border-radius: 0 150px 100px 0; }
+
+        .toggle {
+            background: linear-gradient(135deg, var(--accent-1), #881337);
+            height: 100%;
+            color: #fff;
+            position: relative;
+            left: -100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: all 0.7s ease-in-out;
+        }
+
+        .container.active .toggle { transform: translateX(50%); }
+
+        .toggle-panel {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 30px;
+            text-align: center;
+            top: 0;
+            transform: translateX(0);
+            transition: all 0.7s ease-in-out;
+        }
+
+        .toggle-left { transform: translateX(-200%); }
+        .container.active .toggle-left { transform: translateX(0); }
+        .toggle-right { right: 0; transform: translateX(0); }
+        .container.active .toggle-right { transform: translateX(200%); }
+
+        /* Notification Box */
+        #msgBox {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateX(200%);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+            z-index: 1000;
+            opacity: 0;
+        }
+
+        #msgBox.show { transform: translateX(0); opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { width: 90%; min-height: 600px; }
+            .toggle-container { display: none; }
+            .sign-in, .sign-up { width: 100%; left: 0; }
+            .container.active .sign-in { transform: translateX(-100%); opacity: 0; }
+            .container.active .sign-up { transform: translateX(0); opacity: 1; }
+        }
+
+        .mobile-toggle {
+            display: none;
+            color: var(--accent-1);
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            padding: 8px 0;
+        }
+
+        @media (max-width: 768px) { .mobile-toggle { display: block; } }
+
+    </style>
+</head>
+<body>
+    <!-- Accessible Notification Box -->
+    <div id="msgBox" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Canvas Background -->
+    <canvas id="bgCanvas" aria-hidden="true"></canvas>
+
+    <div class="container" id="container" aria-live="off">
+        <!-- Sign Up Form -->
+        <div class="form-container sign-up" aria-hidden="false">
+            <form id="signUpForm" novalidate>
+                <h1>Join Ituna</h1>
+                <span>Create a student/staff account</span>
+
+                <label for="regName" class="sr-only">Full Name</label>
+                <div class="input-group">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    <input type="text" id="regName" name="name" placeholder="Full Name" autocomplete="name" required>
+                </div>
+
+                <label for="regEmail" class="sr-only">School Email</label>
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                    <input type="email" id="regEmail" name="email" placeholder="School Email" autocomplete="email" required>
+                </div>
+
+                <label for="regPass" class="sr-only">Password</label>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <input type="password" id="regPass" name="new-password" placeholder="Password" autocomplete="new-password" required minlength="8">
+                </div>
+
+                <button type="submit" id="signUpSubmit">Sign Up</button>
+
+                <button type="button" class="mobile-toggle" id="mobileToSignin" aria-controls="signInForm">Already have an account? Sign In</button>
+            </form>
+        </div>
+
+        <!-- Sign In Form -->
+        <div class="form-container sign-in" aria-hidden="false">
+            <form id="signInForm" novalidate>
+                <h1>Welcome Back</h1>
+                <span>Access your Ituna Dashboard</span>
+
+                <label for="loginEmail" class="sr-only">Student ID or Email</label>
+                <div class="input-group">
+                    <i class="fa-solid fa-user-graduate" aria-hidden="true"></i>
+                    <input type="email" id="loginEmail" name="login" placeholder="Student ID or Email" autocomplete="username" required>
+                </div>
+
+                <label for="loginPass" class="sr-only">Password</label>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    <input type="password" id="loginPass" name="current-password" placeholder="Password" autocomplete="current-password" required>
+                </div>
+
+                <a href="#" aria-label="Forgot your password?">Forgot your password?</a>
+                <button type="submit" id="signInSubmit">Sign In</button>
+
+                <button type="button" class="mobile-toggle" id="mobileToSignup" aria-controls="signUpForm">Don't have an account? Sign Up</button>
+            </form>
+        </div>
+
+        <!-- Sliding Overlay -->
+        <div class="toggle-container" aria-hidden="true">
+            <div class="toggle" aria-hidden="true">
+                <div class="toggle-panel toggle-left" aria-hidden="true">
+                    <h1>Ituna School</h1>
+                    <p>Enter your personal details to use all of site features</p>
+                    <button type="button" class="ghost" id="login" aria-hidden="false">Sign In</button>
+                </div>
+                <div class="toggle-panel toggle-right" aria-hidden="true">
+                    <h1>Ituna Portal</h1>
+                    <p>Register with your personal details to start your academic journey</p>
+                    <button type="button" class="ghost" id="register" aria-hidden="false">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --------- Form switching and message utilities ----------
+        const container = document.getElementById('container');
+        const registerBtn = document.getElementById('register');
+        const loginBtn = document.getElementById('login');
+        const msgBox = document.getElementById('msgBox');
+
+        // Toggle handlers
+        registerBtn.addEventListener('click', () => container.classList.add('active'));
+        loginBtn.addEventListener('click', () => container.classList.remove('active'));
+        document.getElementById('mobileToSignin').addEventListener('click', () => container.classList.remove('active'));
+        document.getElementById('mobileToSignup').addEventListener('click', () => container.classList.add('active'));
+
+        function toggleForm() { container.classList.toggle('active'); }
+
+        // Accessible notification
+        function showMessage(text, isError = false) {
+            msgBox.textContent = text;
+            msgBox.style.background = isError ? getComputedStyle(document.documentElement).getPropertyValue('--error') || '#ef4444' : getComputedStyle(document.documentElement).getPropertyValue('--success') || '#10b981';
+            msgBox.classList.add('show');
+            // Remove after short delay
+            clearTimeout(showMessage._timeout);
+            showMessage._timeout = setTimeout(() => msgBox.classList.remove('show'), 3000);
+        }
+
+        // ---------- Basic form handling (simulated) ----------
+        document.getElementById('signInForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('signInSubmit');
+            const originalText = btn.textContent;
+
+            btn.textContent = 'Verifying...';
+            btn.disabled = true;
+
+            // Simulated request
+            setTimeout(() => {
+                showMessage('Login Successful! Redirecting to Dashboard...');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                // In production: perform real authentication and redirect securely
+            }, 1500);
+        });
+
+        document.getElementById('signUpForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('signUpSubmit');
+            const originalText = btn.textContent;
+
+            // Basic client-side validation example
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPass').value;
+
+            if (!name || !email || pass.length < 8) {
+                showMessage('Please complete the form and use a password with at least 8 characters.', true);
+                return;
+            }
+
+            btn.textContent = 'Creating Account...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                showMessage('Account Created Successfully! You can now login.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+                container.classList.remove('active'); // switch to login
+            }, 1200);
+        });
+
+        // ---------- Canvas particle background (improved & optimized) ----------
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const mouse = { x: null, y: null, radius: 140 };
+        const DPR = Math.max(window.devicePixelRatio || 1, 1);
+
+        // Track mouse - guard null values used in distance calcs
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.clientX;
+            mouse.y = event.clientY;
+        });
+
+        window.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        // Touch support
+        window.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            if (t) { mouse.x = t.clientX; mouse.y = t.clientY; }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            const t = e.touches[0];
+            if (t) { mouse.x = t.clientX; mouse.y = t.clientY; }
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => {
+            mouse.x = null; mouse.y = null;
+        });
+
+        function resizeCanvasAndParticles() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+
+            // Use DPR to create crisp canvas on high DPI
+            canvas.width = Math.floor(w * DPR);
+            canvas.height = Math.floor(h * DPR);
+
+            // scale drawing operations back to CSS pixels
+            ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+            // Compute particle count based on area but limit extremes
+            const area = w * h;
+            // tune: larger divisor => fewer particles. Adjust to taste.
+            const count = Math.max(30, Math.min(220, Math.floor(area / 22000)));
+            initParticles(count);
+        }
+
+        function initParticles(count) {
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                const size = (Math.random() * 1.8) + 0.6;
+                const x = Math.random() * (window.innerWidth - size * 2) + size;
+                const y = Math.random() * (window.innerHeight - size * 2) + size;
+                const directionX = (Math.random() * 2) - 1;
+                const directionY = (Math.random() * 2) - 1;
+                const color = getComputedStyle(document.documentElement).getPropertyValue('--particle') || 'rgba(244,63,94,0.8)';
+                particles.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            update() {
+                // bounce off edges (CSS pixel coordinates)
+                if (this.x + this.size > window.innerWidth || this.x - this.size < 0) this.directionX = -this.directionX;
+                if (this.y + this.size > window.innerHeight || this.y - this.size < 0) this.directionY = -this.directionY;
+
+                // mouse interaction only when mouse has valid coords
+                if (mouse.x !== null && mouse.y !== null) {
+                    const dx = mouse.x - this.x;
+                    const dy = mouse.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 0 && dist < mouse.radius) {
+                        const push = (mouse.radius - dist) / mouse.radius;
+                        // move particle away with strength proportional to closeness
+                        this.x -= (dx / dist) * push * 3;
+                        this.y -= (dy / dist) * push * 3;
+                    }
+                }
+
+                this.x += this.directionX * 0.45;
+                this.y += this.directionY * 0.45;
+                this.draw();
+            }
+        }
+
+        // Optimized connection: radius-based, squared distance, avoid full O(n^2) cost explosion
+        function connect() {
+            const len = particles.length;
+            if (len <= 1) return;
+
+            const maxDistance = Math.min(window.innerWidth, window.innerHeight) / 6;
+            const maxDistSq = maxDistance * maxDistance;
+
+            for (let a = 0; a < len; a++) {
+                // Only check next neighbors to reduce compare count — still reasonable for visual effect
+                for (let b = a + 1; b < len; b++) {
+                    const dx = particles[a].x - particles[b].x;
+                    const dy = particles[a].y - particles[b].y;
+                    const distSq = dx * dx + dy * dy;
+                    if (distSq < maxDistSq) {
+                        const opacity = 1 - (Math.sqrt(distSq) / maxDistance);
+                        ctx.strokeStyle = `rgba(244,63,94,${opacity.toFixed(3)})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // clear using CSS pixel dimensions
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+            }
+
+            connect();
+        }
+
+        // initialize
+        window.addEventListener('resize', () => {
+            // throttle resize action slightly
+            clearTimeout(resizeCanvasAndParticles._t);
+            resizeCanvasAndParticles._t = setTimeout(resizeCanvasAndParticles, 120);
+        });
+
+        window.addEventListener('load', () => {
+            resizeCanvasAndParticles();
+            animate();
+        });
+    </script>
+</body>
+</html>
